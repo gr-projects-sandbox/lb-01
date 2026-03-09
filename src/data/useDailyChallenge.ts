@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import { DAILY_CHALLENGES, type Challenge } from './content'
 
 const STORAGE_KEY = 'lotos-daily'
