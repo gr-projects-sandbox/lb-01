@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
+import type { FocusState } from '../App'
 
 // IDLE:   autoRotate, OrbitControls owns camera (flower view)
 // FLYING: lerp toward goal, controls disabled
@@ -12,8 +13,10 @@ const HOME_POS = new THREE.Vector3(0, 12, 5)
 const HOME_TARGET = new THREE.Vector3(0, 0, 0)
 const LERP = 0.08
 const THRESHOLD = 0.15
+const CAM_HEIGHT = 3
+const CAM_DIST = 2
 
-export function CameraController({ focus }: { focus: { pos: THREE.Vector3 } | null }) {
+export function CameraController({ focus }: { focus: FocusState | null }) {
   const controlsRef = useRef<any>(null!)
   const { camera } = useThree()
 
@@ -26,13 +29,23 @@ export function CameraController({ focus }: { focus: { pos: THREE.Vector3 } | nu
     const ctrl = controlsRef.current
     if (!ctrl) return
 
-    // Detect change → start FLYING
-    const key = focus ? `${focus.pos.x},${focus.pos.z}` : null
+    const key = focus ? `${focus.index}` : null
+
     if (key !== prevFocusKey.current) {
       prevFocusKey.current = key
       if (focus) {
-        goalPos.current.set(focus.pos.x * 0.5, 6, focus.pos.z * 0.5 + 1)
-        goalTarget.current.copy(focus.pos)
+        const target = focus.pos
+        // Camera behind and above the target, along radial direction
+        const dirLen = Math.sqrt(target.x * target.x + target.z * target.z)
+        const dirX = dirLen > 0.001 ? target.x / dirLen : 0
+        const dirZ = dirLen > 0.001 ? target.z / dirLen : 1
+
+        goalPos.current.set(
+          target.x - dirX * CAM_DIST,
+          target.y + CAM_HEIGHT,
+          target.z - dirZ * CAM_DIST,
+        )
+        goalTarget.current.copy(target)
       } else {
         goalPos.current.copy(HOME_POS)
         goalTarget.current.copy(HOME_TARGET)
@@ -58,12 +71,10 @@ export function CameraController({ focus }: { focus: { pos: THREE.Vector3 } | nu
           ctrl.enableDamping = true
 
           if (focus) {
-            // Petal view: free orbit, no autoRotate
             ctrl.autoRotate = false
             ctrl.enableZoom = true
             state.current = 'FREE'
           } else {
-            // Back to flower: autoRotate
             ctrl.autoRotate = true
             ctrl.enableZoom = false
             state.current = 'IDLE'
@@ -72,7 +83,6 @@ export function CameraController({ focus }: { focus: { pos: THREE.Vector3 } | nu
         break
 
       case 'FREE':
-        // OrbitControls owns camera — never touch position or target here
         break
     }
 

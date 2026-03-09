@@ -10,7 +10,7 @@ export function PetalMesh({ angle, seg, texArgs, emissive, tilt = 0, twist = 0, 
   texArgs: [number, number, [string, string, string], string, number]
   tilt?: number; twist?: number; wide?: number; tall?: number; opacity?: number; tipFade?: number; layerOrder?: number; scale?: [number, number, number]
   speed: number; amp: number; offset: number; fill?: number; value?: number
-  onPetalClick?: (index: number, pos: THREE.Vector3) => void; petalIndex?: number
+  onPetalClick?: (index: number) => void; petalIndex?: number
 }) {
   const ref = useRef<THREE.Group>(null!)
   const meshRef = useRef<THREE.Mesh>(null!)
@@ -32,8 +32,7 @@ export function PetalMesh({ angle, seg, texArgs, emissive, tilt = 0, twist = 0, 
       pointerDown.current = null
       if (dx * dx + dy * dy > 64) return // >8px = drag, not tap
     }
-    const pos = meshRef.current.localToWorld(new THREE.Vector3(0, 1.6, 0.2))
-    onPetalClick(petalIndex!, pos)
+    onPetalClick(petalIndex!)
   } : undefined
   return (
     <group ref={ref} rotation={[0, 0, angle]} renderOrder={layerOrder}>
