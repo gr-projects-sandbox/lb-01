@@ -42,7 +42,7 @@ export function LangProvider({ children }: { children: ReactNode }) {
     const lang = detectLang()
     return {
       lang,
-      ui: UI_STRINGS[lang],
+      ui: UI_STRINGS[lang] as UIStrings,
       petalName: (i: number) => PETAL_NAMES[lang][i] ?? '',
     }
   }, [])
