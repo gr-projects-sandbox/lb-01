@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react'
 import { DAILY_CHALLENGES, type Challenge } from './content'
+import { DAILY_CHALLENGES_EN } from './content_en'
+import type { Lang } from '../i18n/LangContext'
 
 const STORAGE_KEY = 'lotos-daily'
 
@@ -32,8 +34,9 @@ function dayNumber(date: string): number {
 }
 
 /** Pick 3 challenges for a petal on a given day */
-export function getDailyChallenges(petalIndex: number, date: string): Challenge[] {
-  const pool = DAILY_CHALLENGES[petalIndex]
+export function getDailyChallenges(petalIndex: number, date: string, lang: Lang = 'pl'): Challenge[] {
+  const source = lang === 'en' ? DAILY_CHALLENGES_EN : DAILY_CHALLENGES
+  const pool = source[petalIndex]
   if (!pool || pool.length === 0) return []
   const d = dayNumber(date)
   const start = (d * 3) % pool.length

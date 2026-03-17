@@ -5,6 +5,7 @@ import { CameraController } from './camera/CameraController'
 import { Scene } from './scene/Scene'
 import { focusCenter } from './camera/focusCenter'
 import { useDailyProgress } from './data/useDailyChallenge'
+import { useLang } from './i18n/LangContext'
 import './index.css'
 
 export interface FocusState {
@@ -15,6 +16,7 @@ export interface FocusState {
 export default function App() {
   const [dark, setDark] = useState(true)
   const [focus, setFocus] = useState<FocusState | null>(null)
+  const { ui } = useLang()
   const daily = useDailyProgress()
 
   const handlePetalClick = useCallback((index: number) => {
@@ -57,7 +59,7 @@ export default function App() {
           backdropFilter: 'blur(8px)', color: textColor,
           fontSize: 13, fontWeight: 500, fontFamily: '"Inter", system-ui, sans-serif',
           letterSpacing: 0.5,
-        }}>← Wróć</button>
+        }}>{ui.back}</button>
       )}
 
       {/* Daily counter + calendar */}

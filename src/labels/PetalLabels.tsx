@@ -1,11 +1,13 @@
 import { Html } from '@react-three/drei'
 import { PETALS, LAYERS } from '../data/petals'
 import type { useDailyProgress } from '../data/useDailyChallenge'
+import { useLang } from '../i18n/LangContext'
 
 export function PetalLabels({ dark, hidden, daily }: {
   dark: boolean; hidden: boolean
   daily: ReturnType<typeof useDailyProgress>
 }) {
+  const { ui, petalName } = useLang()
   const fade = { transition: 'opacity 0.6s ease', opacity: hidden ? 0 : 1 } as const
   const layer = LAYERS[2]
   return (
@@ -26,7 +28,7 @@ export function PetalLabels({ dark, hidden, daily }: {
               fontFamily: '"Inter", system-ui, sans-serif',
               whiteSpace: 'nowrap',
             }}>
-              <span style={{ fontSize: 12, opacity: hidden ? 0 : 0.8, letterSpacing: 1, fontWeight: 400 }}>{p.name}</span>
+              <span style={{ fontSize: 12, opacity: hidden ? 0 : 0.8, letterSpacing: 1, fontWeight: 400 }}>{petalName(i)}</span>
               <span style={{ fontSize: 28 }}>{done === 3 ? '✅' : p.icon}</span>
               {done > 0 && done < 3 && (
                 <span style={{ fontSize: 11, opacity: 0.6, color: dark ? '#d4a840' : '#6a5020' }}>{Math.round(done / 3 * 100)}%</span>
@@ -45,7 +47,7 @@ export function PetalLabels({ dark, hidden, daily }: {
           fontFamily: '"Inter", system-ui, sans-serif',
           whiteSpace: 'nowrap',
         }}>
-          <span style={{ fontSize: 11, opacity: hidden ? 0 : 0.7 }}>Dziś:</span>
+          <span style={{ fontSize: 11, opacity: hidden ? 0 : 0.7 }}>{ui.today}</span>
           <span style={{ fontSize: 28, fontWeight: 300, color: dark ? '#d4a840' : '#6a5020' }}>{daily.percent}%</span>
         </div>
       </Html>

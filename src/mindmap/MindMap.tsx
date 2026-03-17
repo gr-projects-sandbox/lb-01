@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Html } from '@react-three/drei'
 import { PETALS } from '../data/petals'
 import { getDailyChallenges } from '../data/useDailyChallenge'
+import { useLang } from '../i18n/LangContext'
 
 const BRANCH_POS = [
   [-1, -0.6],
@@ -18,8 +19,9 @@ export function MindMap({ petalIndex, dark, position, date, isSlotDone, petalDon
   petalDone: number
   onSlotDone: (slot: number) => void
 }) {
+  const { lang, ui, petalName } = useLang()
   const petal = PETALS[petalIndex]
-  const challenges = getDailyChallenges(petalIndex, date)
+  const challenges = getDailyChallenges(petalIndex, date, lang)
   const accent = dark ? petal.light : petal.dark
   const textColor = dark ? '#e8dfc8' : '#2a2010'
   const [spread, setSpread] = useState(false)
@@ -70,7 +72,7 @@ export function MindMap({ petalIndex, dark, position, date, isSlotDone, petalDon
           <span style={{
             fontSize: 'min(14px, 2vw)', fontWeight: 500, letterSpacing: 1,
             color: textColor, fontFamily: '"Inter", system-ui, sans-serif',
-          }}>{petal.name}</span>
+          }}>{petalName(petalIndex)}</span>
           <span style={{
             fontSize: 'min(18px, 3vw)', fontWeight: 300, color: accent,
             fontFamily: '"Inter", system-ui, sans-serif',
@@ -126,7 +128,7 @@ export function MindMap({ petalIndex, dark, position, date, isSlotDone, petalDon
                         border: 'none', borderRadius: 8, padding: '5px 10px',
                         fontSize: 'min(11px, 1.8vw)', fontWeight: 600, cursor: 'pointer',
                         fontFamily: '"Inter", system-ui, sans-serif',
-                      }}>Zrobione!</button>
+                      }}>{ui.done}</button>
                   )}
                 </div>
               </div>
