@@ -3,6 +3,7 @@ import { Html } from '@react-three/drei'
 import { PETALS } from '../data/petals'
 import { getDailyChallenges } from '../data/useDailyChallenge'
 import { useLang } from '../i18n/LangContext'
+import { getWidget } from '../modules/registry'
 
 const BRANCH_POS = [
   [-1, -0.6],
@@ -10,7 +11,7 @@ const BRANCH_POS = [
   [0, 0.8],
 ]
 
-export function MindMap({ petalIndex, dark, position, date, isSlotDone, petalDone, onSlotDone }: {
+export function MindMap({ petalIndex, dark, position, date, isSlotDone, petalDone, onSlotDone, getWidgetValue, onWidgetChange }: {
   petalIndex: number
   dark: boolean
   position: [number, number, number]
@@ -18,6 +19,8 @@ export function MindMap({ petalIndex, dark, position, date, isSlotDone, petalDon
   isSlotDone: (slot: number) => boolean
   petalDone: number
   onSlotDone: (slot: number) => void
+  getWidgetValue: (slot: number) => unknown
+  onWidgetChange: (slot: number, value: unknown) => void
 }) {
   const { lang, ui, petalName } = useLang()
   const petal = PETALS[petalIndex]
@@ -118,18 +121,27 @@ export function MindMap({ petalIndex, dark, position, date, isSlotDone, petalDon
                   borderLeft: `2px solid ${accent}`, paddingLeft: 'min(8px, 1vw)',
                   display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
                 }}>{ch.task}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 'min(9px, 1.5vw)', opacity: 0.4, color: textColor }}>{ch.duration}</span>
-                  {!done && (
-                    <button onClick={e => { e.stopPropagation(); onSlotDone(i) }}
-                      style={{
-                        marginLeft: 'auto', background: accent,
-                        color: dark ? '#1a1510' : '#fff',
-                        border: 'none', borderRadius: 8, padding: '5px 10px',
-                        fontSize: 'min(11px, 1.8vw)', fontWeight: 600, cursor: 'pointer',
-                        fontFamily: '"Inter", system-ui, sans-serif',
-                      }}>{ui.done}</button>
-                  )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 'min(9px, 1.5vw)', opacity: 0.4, color: textColor }}>{ch.duration}</span>
+                    {!done && !ch.widget && (
+                      <button onClick={e => { e.stopPropagation(); onSlotDone(i) }}
+                        style={{
+                          marginLeft: 'auto', background: accent,
+                          color: dark ? '#1a1510' : '#fff',
+                          border: 'none', borderRadius: 8, padding: '5px 10px',
+                          fontSize: 'min(11px, 1.8vw)', fontWeight: 600, cursor: 'pointer',
+                          fontFamily: '"Inter", system-ui, sans-serif',
+                        }}>{ui.done}</button>
+                    )}
+                  </div>
+                  {!done && ch.widget && (() => {
+                    const W = getWidget(ch.widget.type)
+                    if (!W) return null
+                    return <W config={ch.widget} value={getWidgetValue(i)}
+                      onChange={v => onWidgetChange(i, v)} onComplete={() => onSlotDone(i)}
+                      accent={accent} dark={dark} lang={lang} />
+                  })()}
                 </div>
               </div>
             </div>

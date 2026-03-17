@@ -1,13 +1,22 @@
 import { useState, useCallback } from 'react'
-import { DAILY_CHALLENGES, type Challenge } from './content'
-import { DAILY_CHALLENGES_EN } from './content_en'
+import { getPackByPetalIndex } from './loadPacks'
 import type { Lang } from '../i18n/LangContext'
+import type { Quest, QuestWidget } from '../../data_packs/types'
+
+export interface Challenge {
+  icon: string
+  title: string
+  task: string
+  duration: string
+  widget?: QuestWidget
+}
 
 const STORAGE_KEY = 'lotos-daily'
 
 interface DayState {
   date: string
   done: string[] // "petalIndex:slotIndex" keys
+  widgetData?: Record<string, unknown> // "petalIndex:slotIndex" → widget value
 }
 
 function formatDate(d: Date): string {
@@ -33,14 +42,31 @@ function dayNumber(date: string): number {
   return Math.floor(new Date(date).getTime() / 86400000)
 }
 
-/** Pick 3 challenges for a petal on a given day */
+/** Resolve a Quest from a data pack into a flat Challenge for the given language */
+function resolveQuest(q: Quest, lang: Lang): Challenge {
+  return {
+    icon: q.icon,
+    title: q.title[lang],
+    task: q.task[lang],
+    duration: q.duration[lang],
+    widget: q.widget,
+  }
+}
+
+/** Pick 3 challenges for a petal on a given day — one from each category, rotating daily */
 export function getDailyChallenges(petalIndex: number, date: string, lang: Lang = 'pl'): Challenge[] {
-  const source = lang === 'en' ? DAILY_CHALLENGES_EN : DAILY_CHALLENGES
-  const pool = source[petalIndex]
-  if (!pool || pool.length === 0) return []
+  const pack = getPackByPetalIndex(petalIndex)
+  if (!pack) return []
+
   const d = dayNumber(date)
-  const start = (d * 3) % pool.length
-  return [0, 1, 2].map(i => pool[(start + i) % pool.length])
+
+  // One quest per category, rotating by day
+  return pack.categories.map((cat, catIdx) => {
+    const quests = cat.quests
+    if (quests.length === 0) return null
+    const idx = (d + catIdx) % quests.length
+    return resolveQuest(quests[idx], lang)
+  }).filter(Boolean) as Challenge[]
 }
 
 export function useDailyProgress() {
@@ -72,8 +98,21 @@ export function useDailyProgress() {
     })
   }, [key])
 
+  const getWidgetValue = useCallback((petal: number, slot: number): unknown => {
+    return state.widgetData?.[key(petal, slot)]
+  }, [state, key])
+
+  const setWidgetValue = useCallback((petal: number, slot: number, value: unknown) => {
+    setState(prev => {
+      const k = key(petal, slot)
+      const next = { ...prev, widgetData: { ...prev.widgetData, [k]: value } }
+      save(next)
+      return next
+    })
+  }, [key])
+
   const totalDone = state.done.length
   const percent = Math.round((totalDone / 18) * 100)
 
-  return { date, changeDate, isSlotDone, petalDone, markSlotDone, totalDone, percent }
+  return { date, changeDate, isSlotDone, petalDone, markSlotDone, getWidgetValue, setWidgetValue, totalDone, percent }
 }

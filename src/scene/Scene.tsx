@@ -50,7 +50,9 @@ export function Scene({ dark, focus, onPetalClick, daily }: {
           date={daily.date}
           isSlotDone={s => daily.isSlotDone(focus.index, s)}
           petalDone={daily.petalDone(focus.index)}
-          onSlotDone={s => daily.markSlotDone(focus.index, s)} />
+          onSlotDone={s => daily.markSlotDone(focus.index, s)}
+          getWidgetValue={s => daily.getWidgetValue(focus.index, s)}
+          onWidgetChange={(s, v) => daily.setWidgetValue(focus.index, s, v)} />
       </>}
       <BreathingEffects dark={dark} />
     </>

@@ -1,4 +1,5 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react'
+import { getDataPacks } from '../data/loadPacks'
 
 export type Lang = 'pl' | 'en'
 
@@ -16,11 +17,6 @@ const UI_STRINGS = {
 } as const
 
 export type UIStrings = typeof UI_STRINGS['pl']
-
-const PETAL_NAMES: Record<Lang, string[]> = {
-  pl: ['Równowaga', 'Relaks', 'Sen', 'Dieta', 'Rozwój', 'Aktywność'],
-  en: ['Balance', 'Relaxation', 'Sleep', 'Diet', 'Growth', 'Activity'],
-}
 
 interface LangContextValue {
   lang: Lang
@@ -40,10 +36,14 @@ function detectLang(): Lang {
 export function LangProvider({ children }: { children: ReactNode }) {
   const value = useMemo<LangContextValue>(() => {
     const lang = detectLang()
+    const packs = getDataPacks()
     return {
       lang,
       ui: UI_STRINGS[lang] as UIStrings,
-      petalName: (i: number) => PETAL_NAMES[lang][i] ?? '',
+      petalName: (i: number) => {
+        const pack = packs.find(p => p.petalIndex === i)
+        return pack ? pack.name[lang] : ''
+      },
     }
   }, [])
 
